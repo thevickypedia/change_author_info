@@ -1,8 +1,20 @@
 #!/bin/sh
 
-git clone --bare https://github.com/[Account_ID]/[repo name].git &> /dev/null
+if [ $# -ne 1 ]; then
+    echo $0: ERROR:
+    echo Usage: bash $0 repository
+    exit 1
+fi
 
-cd [repo name].git
+repo=$1
+
+git clone --bare https://github.com/[USER_ID]/$1.git &> /dev/null
+
+echo Cloned the repo $1
+
+cd $1.git
+
+echo Renaming your commits on $1
 
 git filter-branch --env-filter '
 OLD_EMAIL="ENTER YOUR EMAIL WHICH HAS TO BE CHANGED"
@@ -20,6 +32,15 @@ then
 fi
 ' --tag-name-filter cat -- --branches --tags | grep 'WARNING' &> /dev/null
 
+if [ $? == 0 ]; then
+	echo "Your branch is up to date.. No changes to push"
+else
+	echo Pushing changes to GitHub
+	git push --force --tags origin 'refs/heads/*'
+fi
+
 cd ../
 
-rm -rf [repo name].git
+rm -rf $1.git
+
+echo Removed repo
